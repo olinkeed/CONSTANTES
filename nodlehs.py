@@ -4,16 +4,16 @@ TT_SUM    = 'SUM'
 TT_MINUS  = 'MINUS'
 TT_MULT   = 'MULT'
 TT_DIV    = 'DIV'
-TT_LPAREN = 'LPAREN'  
-TT_RPAREN = 'RPAREN'  
-TT_EOF    = 'EOF'     
-TT_EQ     = 'EQ'      
+TT_LPAREN = 'LPAREN' 
+TT_RPAREN = 'RPAREN' 
+TT_EOF    = 'EOF'    
+TT_EQ     = 'EQ'   
 TT_ID     = 'ID'  
 
-TT_CONST  = 'CONST'   
+TT_CONST  = 'CONST'   # 
 
-nomeVariaveis = {}  
-constantes = set()  
+nomeVariaveis = {}   #
+constantes = set()   #
 
 class Erro(Exception):
     def __init__(self, posInicio, posFinal, nomeDoErro, detalheDoErro):
@@ -26,7 +26,6 @@ class Erro(Exception):
     def printDoErro(self):
         resultado  = f'{self.nomeDoErro}: {self.detalhedoErro}\n'
         resultado += f'Posicao do Erro -> Linha: {self.posInicio.linha}, Coluna: {self.posInicio.coluna}\n'
-        resultado += f'Arquivo: {self.posInicio.nomeArquivo}'
         return resultado
 
 class ErroCaractereInvalido(Erro):
@@ -164,9 +163,9 @@ class Lexer:
         while self.atual is not None and (self.atual.isalnum() or self.atual == '_'):
             idString += self.atual
             self.avancar()
-        # Reconhece palavra-chave CONST
+        # 
         if idString == 'CONST':
-            return Token(TT_CONST)
+            return Token(TT_CONST)#sem
               
         return Token(TT_ID, idString)
 
@@ -272,12 +271,14 @@ class Parser:
             expr = self.expr()
             return PrintNode(expr)
         
+        # 
         if tok.tipo == TT_CONST:
             self.avancar()
             if self.tokenAtual.tipo != TT_ID:
                 raise ErroSintaxeInvalida("Esperava um nome de variável após CONST")
             varToken = self.tokenAtual
 
+            #
             if varToken.valor in nomeVariaveis:
                 raise ErroExecucao(f"Não é possível declarar CONST '{varToken.valor}': já existe variável com este nome")
             self.avancar()
@@ -286,10 +287,13 @@ class Parser:
             self.avancar()
             valorNode = self.expr()
             try:
+                # 
                 valor = avaliador(valorNode) 
             except Erro as e:
+                # 
                 raise ErroExecucao(f"Erro ao avaliar constante '{varToken.valor}': {e.detalhedoErro}") from e
 
+            # 
             nomeVariaveis[varToken.valor] = valor
             constantes.add(varToken.valor)
             return None 
@@ -317,6 +321,7 @@ class Parser:
         
         return resultado
 
+# 
 def avaliador(Node):
     if isinstance(Node, NumberNode):
         return Node.token.valor
@@ -330,6 +335,7 @@ def avaliador(Node):
     if isinstance(Node, VarAssignNode):
         nome = Node.token.valor
         if nome in constantes:
+            #
             raise ErroExecucao(f"Constante '{nome}' não pode ser reatribuída.")
         
         valor = avaliador(Node.valorNode)        
